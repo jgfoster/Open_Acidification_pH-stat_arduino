@@ -33,6 +33,8 @@ public:
     return "                ";
   }
   virtual void start();
+  virtual void checksum() {
+  }
 
 protected:
   void setNextState(UIState* state);

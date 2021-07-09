@@ -57,6 +57,9 @@ void PushingBox::loop() {
 }
 
 void PushingBox::sendData() {
+  TankControllerLib::instance()->freeMemory();
+  TankControllerLib::instance()->checksum();
+  serial("PushingBox::sendData() - 1");
   int tankID = EEPROM_TC::instance()->getTankID();
   if (!tankID) {
     serial("Set Tank ID in order to send data to PushingBox");
@@ -69,7 +72,9 @@ void PushingBox::sendData() {
         "Host: api.pushingbox.com\r\n"
         "Connection: close\r\n"
         "\r\n";
+    serial("PushingBox::sendData() - 2");
     snprintf(buffer, sizeof(buffer), format, DevID, tankID);
+    serial("PushingBox::sendData() - 3");
   } else {
     char format[] =
         "GET /pushingbox?devid=%s&tankid=%i&tempData=%.2f&pHdata=%.3f HTTP/1.1\r\n"
@@ -79,7 +84,11 @@ void PushingBox::sendData() {
     // look up tankid, temperature, ph
     float temperature = TempProbe_TC::instance()->getRunningAverage();
     float pH = PHProbe::instance()->getPh();
+    serial("PushingBox::sendData() - 4");
+    TankControllerLib::instance()->checksum();
     snprintf(buffer, sizeof(buffer), format, DevID, tankID, temperature, pH);
+    serial("PushingBox::sendData() - 5");
+    TankControllerLib::instance()->checksum();
   }
   size_t i = 0;
   for (; i < sizeof(buffer); ++i) {
@@ -88,13 +97,21 @@ void PushingBox::sendData() {
       break;
     }
   }
+  serial("PushingBox::sendData() - 6");
+  TankControllerLib::instance()->checksum();
   serial(buffer);
   buffer[i] = '\r';
+  serial("PushingBox::sendData() - 7");
+  TankControllerLib::instance()->checksum();
   serial("attempting to connect to PushingBox...");
   if (client.connected() || client.connect(server, 80)) {
     serial("connected");
     client.write(buffer, strnlen(buffer, sizeof(buffer)));
   } else {
+    serial("PushingBox::sendData() - 8");
+    TankControllerLib::instance()->checksum();
     serial("connection failed");
   }
+  serial("PushingBox::sendData() - 9");
+  TankControllerLib::instance()->checksum();
 }

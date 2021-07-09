@@ -157,6 +157,7 @@ void TankControllerLib::serialEvent1() {
  * Set the next state
  */
 void TankControllerLib::setNextState(UIState *newState, bool update) {
+  TankControllerLib::instance()->freeMemory();
   COUT("TankControllerLib::setNextState() from " << (nextState ? nextState->name() : "nullptr") << " to "
                                                  << newState->name());
   assert(nextState == nullptr);
@@ -200,6 +201,7 @@ void TankControllerLib::updateControls() {
  */
 void TankControllerLib::updateState() {
   if (nextState) {
+    TankControllerLib::instance()->freeMemory();
     serial("Next state = %s", nextState->name());
     COUT("TankControllerLib::updateState() to " << nextState->name());
     assert(state != nextState);
@@ -268,4 +270,22 @@ void TankControllerLib::writeDataToSerial() {
     nextWriteTime = msNow / 60000 * 60000 + 60000;  // round up to next minute
     COUT(buffer);
   }
+}
+
+void TankControllerLib::checksum() {
+  state->checksum();
+}
+
+void TankControllerLib::freeMemory() {
+  extern unsigned int __bss_end;
+  extern unsigned int __heap_start;
+  extern void *__brkval;
+  int free_memory;
+
+  if ((int)__brkval == 0)
+    free_memory = ((int)&free_memory) - ((int)&__bss_end);
+  else
+    free_memory = ((int)&free_memory) - ((int)__brkval);
+
+  serial("Free memory = %i", free_memory);
 }

@@ -54,15 +54,7 @@ MainMenu::MainMenu(TankControllerLib *tc) : UIState(tc) {
   setMenus[SET_TEMPERATURE] = String("Set temperature ");
   setMenus[SET_TIME] = String("Set date/time   ");
 
-  serial("MainMenu is at %x", this);
-  serial("setMenus is at %x", setMenus);
-  serial("setMenus[SET_PH] = %x", setMenus[SET_PH]);
-  checksum = 0;
-  for (int i = 0; i < 16; ++i) {
-    const char *p = setMenus[SET_PH].c_str();
-    checksum += p[i];
-  }
-  serial("setMenus[SET_PH] adds up to %i", checksum);
+  checksum();
 }
 
 /**
@@ -222,15 +214,6 @@ void MainMenu::selectSet() {
 
 // show current temp and pH
 void MainMenu::idle() {
-  int sum = 0;
-  for (int i = 0; i < 16; ++i) {
-    const char *p = setMenus[SET_PH].c_str();
-    sum += p[i];
-  }
-  if (sum != checksum) {
-    serial("setMenus[SET_PH] adds up to %i", checksum);
-    checksum = sum;
-  }
   char output[17];
   snprintf(output, sizeof(output), "pH=%5.3f   %5.3f", PHProbe::instance()->getPh(),
            PHControl::instance()->getTargetPh());
@@ -249,6 +232,7 @@ void MainMenu::idle() {
 }
 
 void MainMenu::loop() {
+  checksum();
   if (level1 == 0) {
     idle();
   } else {
@@ -267,4 +251,18 @@ void MainMenu::loop() {
     }
     LiquidCrystal_TC::instance()->writeLine("<4   ^2  8v   6>", 1);
   }
+}
+
+void MainMenu::checksum() {
+  int sum = 0;
+  for (int i = 0; i < 16; ++i) {
+    const char *p = setMenus[SET_PH].c_str();
+    sum += p[i];
+  }
+  if (sum == _checksum) {
+    return;
+  } else if (_checksum) {
+    serial("setMenus[SET_PH] changed from %i to %i", _checksum, sum);
+  }
+  _checksum = sum;
 }

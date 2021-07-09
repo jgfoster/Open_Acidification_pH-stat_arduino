@@ -51,6 +51,7 @@ public:
     return true;
   }
   void loop();
+  void checksum();
 
 private:
   int16_t level1 = 0;
@@ -65,5 +66,5 @@ private:
   void selectSet();
   void idle();
 
-  int checksum = 0;
+  int _checksum = 0;
 };

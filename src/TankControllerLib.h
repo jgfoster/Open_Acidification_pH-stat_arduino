@@ -23,6 +23,8 @@ public:
   void setup();
   const char* stateName();
   const char* version();
+  void checksum();
+  void freeMemory();
 
 private:
   // class variables
