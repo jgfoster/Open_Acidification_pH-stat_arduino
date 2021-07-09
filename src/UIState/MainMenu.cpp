@@ -4,6 +4,7 @@
 #include "Devices/LiquidCrystal_TC.h"
 #include "Devices/PHControl.h"
 #include "Devices/PHProbe.h"
+#include "Devices/Serial_TC.h"
 #include "Devices/TempProbe_TC.h"
 #include "Devices/TemperatureControl.h"
 #include "EnablePID.h"
@@ -52,6 +53,16 @@ MainMenu::MainMenu(TankControllerLib *tc) : UIState(tc) {
   setMenus[SET_TEMP_CALIBRATION] = String("Temp calibration");
   setMenus[SET_TEMPERATURE] = String("Set temperature ");
   setMenus[SET_TIME] = String("Set date/time   ");
+
+  serial("MainMenu is at %x", this);
+  serial("setMenus is at %x", setMenus);
+  serial("setMenus[SET_PH] = %x", setMenus[SET_PH]);
+  checksum = 0;
+  for (int i = 0; i < 16; ++i) {
+    const char *p = setMenus[SET_PH].c_str();
+    checksum += p[i];
+  }
+  serial("setMenus[SET_PH] adds up to %i", checksum);
 }
 
 /**
@@ -211,6 +222,15 @@ void MainMenu::selectSet() {
 
 // show current temp and pH
 void MainMenu::idle() {
+  int sum = 0;
+  for (int i = 0; i < 16; ++i) {
+    const char *p = setMenus[SET_PH].c_str();
+    sum += p[i];
+  }
+  if (sum != checksum) {
+    serial("setMenus[SET_PH] adds up to %i", checksum);
+    checksum = sum;
+  }
   char output[17];
   snprintf(output, sizeof(output), "pH=%5.3f   %5.3f", PHProbe::instance()->getPh(),
            PHControl::instance()->getTargetPh());

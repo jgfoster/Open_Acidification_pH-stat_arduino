@@ -200,9 +200,12 @@ void TankControllerLib::updateControls() {
  */
 void TankControllerLib::updateState() {
   if (nextState) {
+    serial("Next state = %s", nextState->name());
     COUT("TankControllerLib::updateState() to " << nextState->name());
     assert(state != nextState);
+    serial("updateState() - 1");
     delete state;
+    serial("updateState() - 2");
     state = nextState;
     nextState = nullptr;
     state->start();

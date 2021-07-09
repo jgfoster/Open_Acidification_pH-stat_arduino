@@ -64,4 +64,6 @@ private:
   void selectView();
   void selectSet();
   void idle();
+
+  int checksum = 0;
 };
